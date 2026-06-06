@@ -1,0 +1,29 @@
+diff --git a/apps/frontend/portal/package.json b/apps/frontend/portal/package.json
+index b7bbc2f..8824e18 100644
+--- a/apps/frontend/portal/package.json
++++ b/apps/frontend/portal/package.json
+@@ -11,7 +11,9 @@
+     "turbo:build": "turbo run build --filter=@pawhaven/portal --env-mode=loose",
+     "install:portal": "pnpm --filter=@pawhaven/portal... install",
+     "preview": "vite preview",
+-    "typecheck": "tsc --noEmit"
++    "typecheck": "tsc --noEmit",
++    "cypress:open": "cypress open",
++    "cypress:run": "cypress run"
+   },
+   "dependencies": {
+     "@emotion/react": "^11.14.0",
+diff --git a/package.json b/package.json
+index cce8b1a..129f24f 100644
+--- a/package.json
++++ b/package.json
+@@ -12,7 +12,8 @@
+     "lint-staged": "lint-staged",
+     "build:backend-core": "turbo run build --filter=@pawhaven/backend-core...",
+     "build:frontend-core": "turbo run build --filter=@pawhaven/frontend-core...",
+-    "build:shared": "turbo run build --filter=@pawhaven/shared..."
++    "build:shared": "turbo run build --filter=@pawhaven/shared...",
++    "test:e2e:portal": "pnpm --filter @pawhaven/portal cypress:run"
+   },
+   "lint-staged": {
+     "*.{js,jsx,ts,tsx,mjs,cjs}": [
