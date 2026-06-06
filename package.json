@@ -12,7 +12,8 @@
     "lint-staged": "lint-staged",
     "build:backend-core": "turbo run build --filter=@pawhaven/backend-core...",
     "build:frontend-core": "turbo run build --filter=@pawhaven/frontend-core...",
-    "build:shared": "turbo run build --filter=@pawhaven/shared..."
+    "build:shared": "turbo run build --filter=@pawhaven/shared...",
+    "test:e2e:portal": "pnpm --filter=@pawhaven/portal cypress:run"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs,cjs}": [
