@@ -58,6 +58,10 @@ export class JwtRefreshGuard implements CanActivate {
 
     const accessPayload = this.verifyAccessToken(accessToken);
     if (!accessPayload) {
+      if (isOptionalAuth) {
+        this.clearAuthCookies(res, req);
+        return true;
+      }
       await this.attemptTokenRefresh(req, res, {
         clearCookiesOnFailure: true,
         isOptionalAuth,
@@ -187,7 +191,7 @@ export class JwtRefreshGuard implements CanActivate {
     });
   }
 
-  private clearAuthCookies(res: Response): void {
+  private clearAuthCookies(res: Response, req?: Request): void {
     const cookieOptions = 'Path=/; Max-Age=0; HttpOnly; SameSite=Strict';
     const env = this.configService.get<string>('http.env');
     const secureSuffix = isProd(env) ? '; Secure' : '';
@@ -196,5 +200,11 @@ export class JwtRefreshGuard implements CanActivate {
       `${cookieKeys.access_token}=; ${cookieOptions}${secureSuffix}`,
       `${cookieKeys.refresh_token}=; ${cookieOptions}${secureSuffix}`,
     ]);
+
+    if (req) {
+      req.cookies = req.cookies ?? {};
+      delete req.cookies[cookieKeys.access_token];
+      delete req.cookies[cookieKeys.refresh_token];
+    }
   }
 }
