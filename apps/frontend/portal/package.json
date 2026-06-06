@@ -11,7 +11,9 @@
     "turbo:build": "turbo run build --filter=@pawhaven/portal --env-mode=loose",
     "install:portal": "pnpm --filter=@pawhaven/portal... install",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -74,6 +76,7 @@
     "@types/react-dom": "^19.2.1",
     "autoprefixer": "^10.4.21",
     "babel-plugin-react-compiler": "19.1.0-rc.3",
+    "cypress": "^15.3.0",
     "tailwindcss": "^4.1.14",
     "typescript": "^5.9.3"
   }
