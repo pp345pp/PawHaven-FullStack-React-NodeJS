@@ -31,14 +31,16 @@ export class JwtRefreshGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_API, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-    const isOptionalAuth = this.reflector.getAllAndOverride<boolean>(
-      IS_OPTIONAL_AUTH,
-      [context.getHandler(), context.getClass()],
-    );
+    const isPublic =
+      this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_API, [
+        context.getHandler(),
+        context.getClass(),
+      ]) === true;
+    const isOptionalAuth =
+      this.reflector.getAllAndOverride<boolean>(IS_OPTIONAL_AUTH, [
+        context.getHandler(),
+        context.getClass(),
+      ]) === true;
 
     const req = context.switchToHttp().getRequest<RequestWithUser>();
     const res = context.switchToHttp().getResponse<Response>();
@@ -58,6 +60,11 @@ export class JwtRefreshGuard implements CanActivate {
 
     const accessPayload = this.verifyAccessToken(accessToken);
     if (!accessPayload) {
+      if (isOptionalAuth) {
+        this.clearAccessToken(req, res);
+        return true;
+      }
+
       await this.attemptTokenRefresh(req, res, {
         clearCookiesOnFailure: true,
         isOptionalAuth,
@@ -185,6 +192,19 @@ export class JwtRefreshGuard implements CanActivate {
         req.cookies[name] = value;
       }
     });
+  }
+
+  private clearAccessToken(req: Request, res: Response): void {
+    const cookieOptions = 'Path=/; Max-Age=0; HttpOnly; SameSite=Strict';
+    const env = this.configService.get<string>('http.env');
+    const secureSuffix = isProd(env) ? '; Secure' : '';
+
+    res.setHeader('Set-Cookie', [
+      `${cookieKeys.access_token}=; ${cookieOptions}${secureSuffix}`,
+    ]);
+    if (req.cookies) {
+      delete req.cookies[cookieKeys.access_token];
+    }
   }
 
   private clearAuthCookies(res: Response): void {

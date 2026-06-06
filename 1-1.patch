@@ -1,0 +1,61 @@
+diff --git a/apps/backend/gateway/src/guards/jwt-refresh.guard.ts b/apps/backend/gateway/src/guards/jwt-refresh.guard.ts
+index 17c2da8..56026e1 100644
+--- a/apps/backend/gateway/src/guards/jwt-refresh.guard.ts
++++ b/apps/backend/gateway/src/guards/jwt-refresh.guard.ts
+@@ -31,14 +31,16 @@ export class JwtRefreshGuard implements CanActivate {
+   ) {}
+ 
+   async canActivate(context: ExecutionContext): Promise<boolean> {
+-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_API, [
+-      context.getHandler(),
+-      context.getClass(),
+-    ]);
+-    const isOptionalAuth = this.reflector.getAllAndOverride<boolean>(
+-      IS_OPTIONAL_AUTH,
+-      [context.getHandler(), context.getClass()],
+-    );
++    const isPublic =
++      this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_API, [
++        context.getHandler(),
++        context.getClass(),
++      ]) === true;
++    const isOptionalAuth =
++      this.reflector.getAllAndOverride<boolean>(IS_OPTIONAL_AUTH, [
++        context.getHandler(),
++        context.getClass(),
++      ]) === true;
+ 
+     const req = context.switchToHttp().getRequest<RequestWithUser>();
+     const res = context.switchToHttp().getResponse<Response>();
+@@ -58,6 +60,11 @@ export class JwtRefreshGuard implements CanActivate {
+ 
+     const accessPayload = this.verifyAccessToken(accessToken);
+     if (!accessPayload) {
++      if (isOptionalAuth) {
++        this.clearAccessToken(req, res);
++        return true;
++      }
++
+       await this.attemptTokenRefresh(req, res, {
+         clearCookiesOnFailure: true,
+         isOptionalAuth,
+@@ -187,6 +194,19 @@ export class JwtRefreshGuard implements CanActivate {
+     });
+   }
+ 
++  private clearAccessToken(req: Request, res: Response): void {
++    const cookieOptions = 'Path=/; Max-Age=0; HttpOnly; SameSite=Strict';
++    const env = this.configService.get<string>('http.env');
++    const secureSuffix = isProd(env) ? '; Secure' : '';
++
++    res.setHeader('Set-Cookie', [
++      `${cookieKeys.access_token}=; ${cookieOptions}${secureSuffix}`,
++    ]);
++    if (req.cookies) {
++      delete req.cookies[cookieKeys.access_token];
++    }
++  }
++
+   private clearAuthCookies(res: Response): void {
+     const cookieOptions = 'Path=/; Max-Age=0; HttpOnly; SameSite=Strict';
+     const env = this.configService.get<string>('http.env');
