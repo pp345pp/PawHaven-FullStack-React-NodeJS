@@ -1,0 +1,42 @@
+diff --git a/apps/backend/gateway/src/guards/jwt-refresh.guard.ts b/apps/backend/gateway/src/guards/jwt-refresh.guard.ts
+index 17c2da8..9a55c70 100644
+--- a/apps/backend/gateway/src/guards/jwt-refresh.guard.ts
++++ b/apps/backend/gateway/src/guards/jwt-refresh.guard.ts
+@@ -130,7 +130,7 @@ export class JwtRefreshGuard implements CanActivate {
+     if (!refreshToken) {
+       this.logger.warn('refresh token missing');
+       if (options.clearCookiesOnFailure) {
+-        this.clearAuthCookies(res);
++        this.clearAuthCookies(req, res);
+       }
+       if (!options.isOptionalAuth) {
+         throw new UnauthorizedException('Authentication required');
+@@ -160,7 +160,7 @@ export class JwtRefreshGuard implements CanActivate {
+     } catch (error) {
+       this.logger.error('Token refresh failed', error as Error);
+       if (options.clearCookiesOnFailure) {
+-        this.clearAuthCookies(res);
++        this.clearAuthCookies(req, res);
+       }
+       if (!options.isOptionalAuth) {
+         throw new UnauthorizedException('Session expired, please login again');
+@@ -187,7 +187,7 @@ export class JwtRefreshGuard implements CanActivate {
+     });
+   }
+ 
+-  private clearAuthCookies(res: Response): void {
++  private clearAuthCookies(req: Request, res: Response): void {
+     const cookieOptions = 'Path=/; Max-Age=0; HttpOnly; SameSite=Strict';
+     const env = this.configService.get<string>('http.env');
+     const secureSuffix = isProd(env) ? '; Secure' : '';
+@@ -196,5 +196,10 @@ export class JwtRefreshGuard implements CanActivate {
+       `${cookieKeys.access_token}=; ${cookieOptions}${secureSuffix}`,
+       `${cookieKeys.refresh_token}=; ${cookieOptions}${secureSuffix}`,
+     ]);
++
++    if (req.cookies) {
++      delete req.cookies[cookieKeys.access_token];
++      delete req.cookies[cookieKeys.refresh_token];
++    }
+   }
+ }
