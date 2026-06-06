@@ -35,7 +35,7 @@ export class JwtRefreshGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    const isOptionalAuth = this.reflector.getAllAndOverride<boolean>(
+    const isOptionalAuth = !!this.reflector.getAllAndOverride<boolean>(
       IS_OPTIONAL_AUTH,
       [context.getHandler(), context.getClass()],
     );
@@ -131,6 +131,10 @@ export class JwtRefreshGuard implements CanActivate {
       this.logger.warn('refresh token missing');
       if (options.clearCookiesOnFailure) {
         this.clearAuthCookies(res);
+        if (req.cookies) {
+          delete req.cookies[cookieKeys.access_token];
+          delete req.cookies[cookieKeys.refresh_token];
+        }
       }
       if (!options.isOptionalAuth) {
         throw new UnauthorizedException('Authentication required');
@@ -161,6 +165,10 @@ export class JwtRefreshGuard implements CanActivate {
       this.logger.error('Token refresh failed', error as Error);
       if (options.clearCookiesOnFailure) {
         this.clearAuthCookies(res);
+        if (req.cookies) {
+          delete req.cookies[cookieKeys.access_token];
+          delete req.cookies[cookieKeys.refresh_token];
+        }
       }
       if (!options.isOptionalAuth) {
         throw new UnauthorizedException('Session expired, please login again');

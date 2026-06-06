@@ -27,7 +27,7 @@ export class JwtVerificationGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    const isOptionalAuth = this.reflector.getAllAndOverride<boolean>(
+    const isOptionalAuth = !!this.reflector.getAllAndOverride<boolean>(
       IS_OPTIONAL_AUTH,
       [context.getHandler(), context.getClass()],
     );

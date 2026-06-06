@@ -1,0 +1,48 @@
+diff --git a/apps/backend/gateway/src/guards/jwt-refresh.guard.ts b/apps/backend/gateway/src/guards/jwt-refresh.guard.ts
+index 17c2da8..5bfda44 100644
+--- a/apps/backend/gateway/src/guards/jwt-refresh.guard.ts
++++ b/apps/backend/gateway/src/guards/jwt-refresh.guard.ts
+@@ -35,7 +35,7 @@ export class JwtRefreshGuard implements CanActivate {
+       context.getHandler(),
+       context.getClass(),
+     ]);
+-    const isOptionalAuth = this.reflector.getAllAndOverride<boolean>(
++    const isOptionalAuth = !!this.reflector.getAllAndOverride<boolean>(
+       IS_OPTIONAL_AUTH,
+       [context.getHandler(), context.getClass()],
+     );
+@@ -131,6 +131,10 @@ export class JwtRefreshGuard implements CanActivate {
+       this.logger.warn('refresh token missing');
+       if (options.clearCookiesOnFailure) {
+         this.clearAuthCookies(res);
++        if (req.cookies) {
++          delete req.cookies[cookieKeys.access_token];
++          delete req.cookies[cookieKeys.refresh_token];
++        }
+       }
+       if (!options.isOptionalAuth) {
+         throw new UnauthorizedException('Authentication required');
+@@ -161,6 +165,10 @@ export class JwtRefreshGuard implements CanActivate {
+       this.logger.error('Token refresh failed', error as Error);
+       if (options.clearCookiesOnFailure) {
+         this.clearAuthCookies(res);
++        if (req.cookies) {
++          delete req.cookies[cookieKeys.access_token];
++          delete req.cookies[cookieKeys.refresh_token];
++        }
+       }
+       if (!options.isOptionalAuth) {
+         throw new UnauthorizedException('Session expired, please login again');
+diff --git a/apps/backend/gateway/src/guards/jwt-verification.guard.ts b/apps/backend/gateway/src/guards/jwt-verification.guard.ts
+index 21990ab..d3e2ff0 100644
+--- a/apps/backend/gateway/src/guards/jwt-verification.guard.ts
++++ b/apps/backend/gateway/src/guards/jwt-verification.guard.ts
+@@ -27,7 +27,7 @@ export class JwtVerificationGuard implements CanActivate {
+       context.getHandler(),
+       context.getClass(),
+     ]);
+-    const isOptionalAuth = this.reflector.getAllAndOverride<boolean>(
++    const isOptionalAuth = !!this.reflector.getAllAndOverride<boolean>(
+       IS_OPTIONAL_AUTH,
+       [context.getHandler(), context.getClass()],
+     );
