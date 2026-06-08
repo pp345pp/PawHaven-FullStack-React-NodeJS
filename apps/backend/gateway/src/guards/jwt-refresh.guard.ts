@@ -44,23 +44,23 @@ export class JwtRefreshGuard implements CanActivate {
     const res = context.switchToHttp().getResponse<Response>();
     const accessToken = req.cookies?.[cookieKeys.access_token];
 
-    if (isPublic || (isOptionalAuth && !accessToken)) {
-      return true;
-    }
-
     if (!accessToken) {
+      if (isOptionalAuth) {
+        return true;
+      }
       await this.attemptTokenRefresh(req, res, {
         clearCookiesOnFailure: true,
-        isOptionalAuth,
       });
       return true;
     }
 
     const accessPayload = this.verifyAccessToken(accessToken);
     if (!accessPayload) {
+      if (isOptionalAuth) {
+        return true;
+      }
       await this.attemptTokenRefresh(req, res, {
         clearCookiesOnFailure: true,
-        isOptionalAuth,
       });
       return true;
     }
@@ -68,7 +68,6 @@ export class JwtRefreshGuard implements CanActivate {
     if (this.shouldRefreshSoon(accessPayload)) {
       await this.attemptTokenRefresh(req, res, {
         clearCookiesOnFailure: false,
-        isOptionalAuth,
       });
     }
 
@@ -123,7 +122,7 @@ export class JwtRefreshGuard implements CanActivate {
   private async attemptTokenRefresh(
     req: Request,
     res: Response,
-    options: { clearCookiesOnFailure: boolean; isOptionalAuth: boolean },
+    options: { clearCookiesOnFailure: boolean; isOptionalAuth?: boolean },
   ): Promise<void> {
     const refreshToken = req.cookies?.[cookieKeys.refresh_token];
 
